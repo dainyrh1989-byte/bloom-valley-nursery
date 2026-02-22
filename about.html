@@ -20,15 +20,21 @@
   <main>
     <h2>About Us</h2>
 
-<form>
-  <label for="name">Name:</label><br>
-  <input type="text" id="name" name="name" required><br><br>
+    <!-- Contact / Custom Order Form -->
+    <form id="contactForm">
+      <label for="name">Name:</label><br>
+      <input type="text" id="name" name="name" required><br><br>
 
-  <label for="email">Email:</label><br>
-  <input type="email" id="email" name="email" required><br><br>
+      <label for="email">Email:</label><br>
+      <input type="email" id="email" name="email" required><br><br>
 
-  <button id="submitBtn" type="submit">Submit</button>
-</form>
+      <label for="orderNotes">Custom Order / Message:</label><br>
+      <textarea id="orderNotes" name="orderNotes" rows="4"
+        placeholder="Describe your custom plant order or message here"></textarea><br><br>
+
+      <button id="submitBtn" type="submit">Submit</button>
+    </form>
+
     <div class="card">
       <h3>Our Mission</h3>
       <p>To support our community with quality plants, friendly guidance, and sustainable gardening practices.</p>
@@ -41,9 +47,10 @@
   </main>
 
   <footer>
-  <p>© 2026 Bloom Valley Nursery</p>
-  <button id="subscribeBtn" type="button">Subscribe</button>
-</footer>
+    <p>© 2026 Bloom Valley Nursery</p>
+    <button id="subscribeBtn" type="button">Subscribe</button>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
