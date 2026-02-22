@@ -1,26 +1,27 @@
-/* =========================================================
-   Touchstone 3.2 — Bloom Valley Nursery
-   - sessionStorage: Shopping cart (Gallery page)
-   - localStorage: Contact/custom order form (About page)
-   ========================================================= */
+/*  Touchstone 3.2 - Web Storage (Option A)
+    Bloom Valley Nursery
+    - sessionStorage: Shopping Cart (Gallery page)
+    - localStorage: Custom Order (About/Contact page)
+*/
 
-/* ---------------------------
-   Helpers
---------------------------- */
-function safeParseJSON(value, fallback) {
+// ---------- Helpers ----------
+function safeGetEl(id) {
+  return document.getElementById(id);
+}
+
+function readCart() {
+  // Stored as JSON string: [{ name: "Plant Spotlight Item", qty: 1 }, ...]
+  const raw = sessionStorage.getItem("cartItems");
+  if (!raw) return [];
   try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
   }
 }
 
-function getCartItems() {
-  const raw = sessionStorage.getItem("cartItems");
-  return raw ? safeParseJSON(raw, []) : [];
-}
-
-function setCartItems(items) {
+function saveCart(items) {
   sessionStorage.setItem("cartItems", JSON.stringify(items));
 }
 
@@ -28,253 +29,212 @@ function clearCart() {
   sessionStorage.removeItem("cartItems");
 }
 
-function formatCartForDisplay(items) {
-  if (!items || items.length === 0) return "Your cart is empty.";
-
-  // Simple readable list
-  let lines = ["Items in your cart:"];
-  items.forEach((item, i) => {
-    const name = item.name || "Item";
-    const qty = item.qty || 1;
-    lines.push(`${i + 1}. ${name} (Qty: ${qty})`);
-  });
-  return lines.join("\n");
-}
-
-/* ---------------------------
-   Subscribe (All Pages) — still works for 3.2
---------------------------- */
-const subscribeBtn = document.getElementById("subscribeBtn");
+// ---------- Subscribe (all pages) ----------
+const subscribeBtn = safeGetEl("subscribeBtn");
 if (subscribeBtn) {
   subscribeBtn.addEventListener("click", function () {
     alert("Thank you for subscribing.");
   });
 }
 
-/* ---------------------------
-   Gallery (Cart) — sessionStorage
-   IDs expected (recommended):
-   - addCartBtn
-   - viewCartBtn
-   - clearCartBtn
-   - processOrderBtn
---------------------------- */
-const addCartBtn = document.getElementById("addCartBtn");
-const clearCartBtn = document.getElementById("clearCartBtn");
-const processOrderBtn = document.getElementById("processOrderBtn");
+// ======================================================================
+// GALLERY PAGE (sessionStorage cart + View Cart modal)
+// Expected IDs (based on your work):
+// addCartBtn, viewCartBtn, clearCartBtn, processOrderBtn
+// modal container: cartModal (or shoppingCartModal)
+// modal close button: closeCartBtn (or closeModalBtn)
+// modal item list container: cartItemsList (or cartList)
+// ======================================================================
 
-// View Cart button might exist with id="viewCartBtn".
-// If you don't have it, this code will also try to find a button with text "View Cart".
-let viewCartBtn = document.getElementById("viewCartBtn");
-if (!viewCartBtn) {
-  const buttons = Array.from(document.querySelectorAll("button"));
-  viewCartBtn = buttons.find((b) => (b.textContent || "").trim().toLowerCase() === "view cart") || null;
+// Buttons on page
+const addCartBtn = safeGetEl("addCartBtn");
+const viewCartBtn = safeGetEl("viewCartBtn");
+const clearCartBtn = safeGetEl("clearCartBtn");
+const processOrderBtn = safeGetEl("processOrderBtn");
+
+// Modal elements (supporting multiple possible IDs)
+const cartModal =
+  safeGetEl("cartModal") ||
+  safeGetEl("shoppingCartModal") ||
+  safeGetEl("modal");
+
+const closeCartBtn =
+  safeGetEl("closeCartBtn") ||
+  safeGetEl("closeModalBtn") ||
+  safeGetEl("closeBtn");
+
+const cartItemsList =
+  safeGetEl("cartItemsList") ||
+  safeGetEl("cartList") ||
+  safeGetEl("itemsList");
+
+// Render cart contents into modal
+function renderCartToModal() {
+  if (!cartItemsList) return;
+
+  const items = readCart();
+
+  // Clear current display
+  cartItemsList.innerHTML = "";
+
+  if (items.length === 0) {
+    const p = document.createElement("p");
+    p.textContent = "No items in cart.";
+    cartItemsList.appendChild(p);
+    return;
+  }
+
+  const ol = document.createElement("ol");
+  items.forEach(function (item) {
+    const li = document.createElement("li");
+    li.textContent = `${item.name} (Qty: ${item.qty})`;
+    ol.appendChild(li);
+  });
+  cartItemsList.appendChild(ol);
 }
 
-/* ---- Add to Cart ---- */
+function openCartModal() {
+  if (!cartModal) return;
+
+  renderCartToModal();
+
+  // Support <dialog> or regular div modal
+  if (typeof cartModal.showModal === "function") {
+    cartModal.showModal();
+  } else {
+    cartModal.style.display = "block";
+  }
+}
+
+function closeCartModal() {
+  if (!cartModal) return;
+
+  if (typeof cartModal.close === "function") {
+    cartModal.close();
+  } else {
+    cartModal.style.display = "none";
+  }
+}
+
+// Add to Cart => sessionStorage
 if (addCartBtn) {
   addCartBtn.addEventListener("click", function () {
-    // Since your Gallery has placeholder items, we’ll store a simple item name.
-    // If you later add real item names, you can replace this string.
+    const items = readCart();
+
+    // Add a simple placeholder item required by assignment
+    // If item exists, increase qty
     const itemName = "Plant Spotlight Item";
+    const existing = items.find((i) => i.name === itemName);
 
-    const items = getCartItems();
-
-    // If same item already exists, increase qty; otherwise add new
-    const existing = items.find((it) => it.name === itemName);
     if (existing) {
-      existing.qty = (existing.qty || 1) + 1;
+      existing.qty += 1;
     } else {
       items.push({ name: itemName, qty: 1 });
     }
 
-    setCartItems(items);
+    saveCart(items);
     alert("Item added to the cart.");
   });
 }
 
-/* ---------------------------
-   View Cart Modal (created dynamically)
-   Requirement: modal displays items read from sessionStorage
-   Requirement: Clear Cart + Process Order IN the modal clear sessionStorage
---------------------------- */
-function ensureCartModal() {
-  let overlay = document.getElementById("cartModalOverlay");
-  if (overlay) return overlay;
-
-  overlay = document.createElement("div");
-  overlay.id = "cartModalOverlay";
-  overlay.setAttribute("role", "dialog");
-  overlay.setAttribute("aria-modal", "true");
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.background = "rgba(0,0,0,0.5)";
-  overlay.style.display = "none";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.padding = "16px";
-  overlay.style.zIndex = "9999";
-
-  const modal = document.createElement("div");
-  modal.id = "cartModal";
-  modal.style.background = "#fff";
-  modal.style.maxWidth = "520px";
-  modal.style.width = "100%";
-  modal.style.borderRadius = "10px";
-  modal.style.padding = "16px";
-  modal.style.boxShadow = "0 10px 25px rgba(0,0,0,0.25)";
-
-  const title = document.createElement("h3");
-  title.textContent = "Shopping Cart";
-
-  const content = document.createElement("pre");
-  content.id = "cartModalContent";
-  content.style.whiteSpace = "pre-wrap";
-  content.style.margin = "12px 0";
-  content.style.fontFamily = "inherit";
-
-  const btnRow = document.createElement("div");
-  btnRow.style.display = "flex";
-  btnRow.style.gap = "8px";
-  btnRow.style.flexWrap = "wrap";
-
-  const modalClearBtn = document.createElement("button");
-  modalClearBtn.id = "modalClearCartBtn";
-  modalClearBtn.type = "button";
-  modalClearBtn.textContent = "Clear Cart";
-
-  const modalProcessBtn = document.createElement("button");
-  modalProcessBtn.id = "modalProcessOrderBtn";
-  modalProcessBtn.type = "button";
-  modalProcessBtn.textContent = "Process Order";
-
-  const modalCloseBtn = document.createElement("button");
-  modalCloseBtn.id = "modalCloseBtn";
-  modalCloseBtn.type = "button";
-  modalCloseBtn.textContent = "Close";
-
-  btnRow.appendChild(modalClearBtn);
-  btnRow.appendChild(modalProcessBtn);
-  btnRow.appendChild(modalCloseBtn);
-
-  modal.appendChild(title);
-  modal.appendChild(content);
-  modal.appendChild(btnRow);
-
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-
-  // Close on clicking overlay background
-  overlay.addEventListener("click", function (e) {
-    if (e.target === overlay) hideCartModal();
-  });
-
-  // Modal buttons: Clear/Process must clear sessionStorage
-  modalClearBtn.addEventListener("click", function () {
-    clearCart();
-    updateCartModalContent();
-    alert("Cart cleared.");
-  });
-
-  modalProcessBtn.addEventListener("click", function () {
-    clearCart();
-    updateCartModalContent();
-    alert("Thank you for your order.");
-  });
-
-  modalCloseBtn.addEventListener("click", function () {
-    hideCartModal();
-  });
-
-  return overlay;
-}
-
-function updateCartModalContent() {
-  const items = getCartItems();
-  const content = document.getElementById("cartModalContent");
-  if (content) content.textContent = formatCartForDisplay(items);
-}
-
-function showCartModal() {
-  const overlay = ensureCartModal();
-  updateCartModalContent();
-  overlay.style.display = "flex";
-}
-
-function hideCartModal() {
-  const overlay = document.getElementById("cartModalOverlay");
-  if (overlay) overlay.style.display = "none";
-}
-
-/* ---- View Cart ---- */
+// View Cart => reads sessionStorage and shows modal
 if (viewCartBtn) {
   viewCartBtn.addEventListener("click", function () {
-    showCartModal();
+    openCartModal();
   });
 }
 
-/* ---- Clear Cart (page button) ---- */
+// Clear Cart (page button) => clears sessionStorage
 if (clearCartBtn) {
   clearCartBtn.addEventListener("click", function () {
     clearCart();
     alert("Cart cleared.");
+
+    // If modal is open, refresh it
+    if (cartModal) renderCartToModal();
   });
 }
 
-/* ---- Process Order (page button) ---- */
+// Process Order (page button) => clears sessionStorage
 if (processOrderBtn) {
   processOrderBtn.addEventListener("click", function () {
     clearCart();
     alert("Thank you for your order.");
+
+    // If modal is open, refresh it
+    if (cartModal) renderCartToModal();
   });
 }
 
-/* ---------------------------
-   About Us / Contact Form — localStorage
-   Requirement: Save customer info + custom order info in localStorage
-   Expected IDs from your page:
-   - name (input, required)
-   - email (input type=email, required)
-   Optional (if you have one): message/order textarea with id:
-   - orderDetails OR message OR customOrder
---------------------------- */
-const nameInput = document.getElementById("name");
-const emailInput = document.getElementById("email");
+// Modal close
+if (closeCartBtn) {
+  closeCartBtn.addEventListener("click", function () {
+    closeCartModal();
+  });
+}
 
-// Find a reasonable "order/message" field if it exists
-const orderField =
-  document.getElementById("orderDetails") ||
-  document.getElementById("message") ||
-  document.getElementById("customOrder") ||
-  null;
-
-// Use the first form on the page (your About page uses a <form>)
-const firstForm = document.querySelector("form");
-
-if (firstForm && (nameInput || emailInput || orderField)) {
-  firstForm.addEventListener("submit", function (event) {
-    // Let browser show built-in validation messages
-    if (!firstForm.checkValidity()) {
-      event.preventDefault();
-      firstForm.reportValidity();
-      return;
+// If modal background click should close (optional, safe)
+if (cartModal && typeof cartModal.addEventListener === "function") {
+  cartModal.addEventListener("click", function (e) {
+    // For <dialog>, clicking outside content sets target to dialog itself
+    if (e.target === cartModal && typeof cartModal.close === "function") {
+      cartModal.close();
     }
+  });
+}
 
-    // Valid → prevent page reload so storage stays visible for testing
-    event.preventDefault();
+// ======================================================================
+// ABOUT/CONTACT PAGE (localStorage custom order info)
+// Requirement: About Us form should save customer information + custom order
+// This script supports common IDs; you can match them in about.html.
+// ======================================================================
 
-    const customerName = nameInput ? nameInput.value.trim() : "";
-    const customerEmail = emailInput ? emailInput.value.trim() : "";
-    const customOrderInfo = orderField ? orderField.value.trim() : "";
+// If you have a form, give it id="contactForm" OR use submitBtn click
+const contactForm = safeGetEl("contactForm");
 
-    // Save in localStorage (persists)
-    localStorage.setItem("customerName", customerName);
-    localStorage.setItem("customerEmail", customerEmail);
-    localStorage.setItem("customOrderInfo", customOrderInfo);
+// Common input IDs (edit these in about.html if needed)
+const nameInput = safeGetEl("name");
+const emailInput = safeGetEl("email");
 
+// Optional custom order fields (if you add them)
+const orderTypeInput = safeGetEl("orderType");     // e.g., dropdown
+const orderNotesInput = safeGetEl("orderNotes");   // e.g., textarea
+const submitBtn = safeGetEl("submitBtn");
+
+// Save contact/order data to localStorage
+function saveCustomOrderToLocalStorage() {
+  const orderData = {
+    name: nameInput ? nameInput.value.trim() : "",
+    email: emailInput ? emailInput.value.trim() : "",
+    orderType: orderTypeInput ? orderTypeInput.value.trim() : "",
+    orderNotes: orderNotesInput ? orderNotesInput.value.trim() : "",
+    savedAt: new Date().toISOString(),
+  };
+
+  localStorage.setItem("customOrder", JSON.stringify(orderData));
+}
+
+// If you used a real <form> with required fields, browser validation will handle empty fields.
+// We only save after successful submission.
+if (contactForm) {
+  contactForm.addEventListener("submit", function (e) {
+    // Let browser validate first; if invalid, submission is blocked automatically.
+    // Prevent page reload so alert is visible and storage is saved without navigation.
+    e.preventDefault();
+
+    // If required fields exist and are empty, the browser will not reach here in most cases,
+    // but for safety:
+    if (nameInput && nameInput.hasAttribute("required") && !nameInput.value.trim()) return;
+    if (emailInput && emailInput.hasAttribute("required") && !emailInput.value.trim()) return;
+
+    saveCustomOrderToLocalStorage();
+    alert("Thank you for your message.");
+    contactForm.reset();
+  });
+} else if (submitBtn) {
+  // If you are not using a real form submit event, still store on button click
+  submitBtn.addEventListener("click", function () {
+    saveCustomOrderToLocalStorage();
     alert("Thank you for your message.");
   });
 }
