@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -26,24 +26,39 @@
       <div class="card">Plant Spotlight 2</div>
       <div class="card">Plant Spotlight 3</div>
       <div class="card">Plant Spotlight 4</div>
-
-
       <div class="card">Plant Spotlight 5</div>
       <div class="card">Plant Spotlight 6</div>
     </div>
- <section class="card">
-  <h3>Cart Actions (Placeholder)</h3>
-  <button id="addCartBtn" type="button">Add to Cart</button>
-  <button id="viewCartBtn" type="button">View Cart</button>
-  <button id="clearCartBtn" type="button">Clear Cart</button>
-  <button id="processOrderBtn" type="button">Process Order</button>
-</section>
+
+    <section class="card">
+      <h3>Cart Actions (Placeholder)</h3>
+      <button id="addCartBtn" type="button">Add to Cart</button>
+      <button id="viewCartBtn" type="button">View Cart</button>
+      <button id="clearCartPageBtn" type="button">Clear Cart</button>
+      <button id="processOrderPageBtn" type="button">Process Order</button>
+    </section>
+
+    <!-- Shopping Cart Modal -->
+    <dialog id="cartModal">
+      <h2>Shopping Cart</h2>
+      <p>Items in your cart:</p>
+
+      <!-- JS will inject items here -->
+      <div id="cartItemsList"></div>
+
+      <div style="margin-top: 12px;">
+        <button id="clearCartBtn" type="button">Clear Cart</button>
+        <button id="processOrderBtn" type="button">Process Order</button>
+        <button id="closeCartBtn" type="button">Close</button>
+      </div>
+    </dialog>
   </main>
 
-<footer>
-  <p>© 2026 Bloom Valley Nursery</p>
-  <button id="subscribeBtn" type="button">Subscribe</button>
-</footer>
+  <footer>
+    <p>© 2026 Bloom Valley Nursery</p>
+    <button id="subscribeBtn" type="button">Subscribe</button>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
