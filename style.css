@@ -1,1 +1,79 @@
-<html><head></head><body style="overflow-wrap: break-word; -webkit-nbsp-mode: space; line-break: after-white-space;">style.css</body></html>
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f4f7f4;
+  color: #1f2a1f;
+  line-height: 1.6;
+}
+
+header {
+  background-color: #2f6f4e;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+nav {
+  margin-top: 10px;
+}
+
+nav a {
+  text-decoration: none;
+  color: white;
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  padding: 20px;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.gallery img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.card {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+button {
+  background-color: #caa44a;
+  color: #1f2a1f;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+footer {
+  background-color: #1f2a1f;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .gallery {
+    grid-template-columns: 1fr;
+  }
+}
