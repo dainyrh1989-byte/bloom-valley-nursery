@@ -1,4 +1,6 @@
-// Subscribe button (all pages)
+// ===============================
+// Subscribe button (ALL pages)
+// ===============================
 const subscribeBtn = document.getElementById("subscribeBtn");
 if (subscribeBtn) {
   subscribeBtn.addEventListener("click", function () {
@@ -6,7 +8,9 @@ if (subscribeBtn) {
   });
 }
 
-// Gallery buttons
+// ===============================
+// Gallery page buttons
+// ===============================
 const addCartBtn = document.getElementById("addCartBtn");
 if (addCartBtn) {
   addCartBtn.addEventListener("click", function () {
@@ -28,10 +32,10 @@ if (processOrderBtn) {
   });
 }
 
-// Contact form submit (About page)
-const submitBtn = document.getElementById("submitBtn");
-if (submitBtn) {
-  submitBtn.addEventListener("click", function () {
-    alert("Thank you for your message.");
-  });
-}
+// ===============================
+// IMPORTANT NOTE (About Us page)
+// ===============================
+// NO JavaScript alert for the contact form.
+// The form uses built-in HTML validation (required fields and email type).
+// This allows the browser to display automatic validation messages,
+// which is required for Touchstone Task 3.1.
